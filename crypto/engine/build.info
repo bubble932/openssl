@@ -5,7 +5,12 @@ SOURCE[../../libcrypto]=\
         tb_rsa.c tb_dsa.c tb_dh.c tb_rand.c \
         tb_cipher.c tb_digest.c tb_pkmeth.c tb_asnmth.c tb_eckey.c \
         eng_openssl.c eng_cnf.c eng_dyn.c \
-        eng_rdrand.c
+        eng_rdrand.c \
+	eng_zxsm.c {- $target{zxsm_asm_src} -}
+
+GENERATE[e_zxsm-x86.s]=asm/e_zxsm-x86.pl $(PERLASM_SCHEME) $(CFLAGS) $(LIB_CFLAGS) $(PROCESSOR)
+GENERATE[e_zxsm-x86_64.s]=asm/e_zxsm-x86_64.pl $(PERLASM_SCHEME)
+
 IF[{- !$disabled{devcryptoeng} -}]
   SOURCE[../../libcrypto]=eng_devcrypto.c
 ENDIF

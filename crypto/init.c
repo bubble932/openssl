@@ -303,6 +303,18 @@ DEFINE_RUN_ONCE_STATIC(ossl_init_engine_padlock)
     return 1;
 }
 #  endif
+#  if !defined(OPENSSL_NO_HW) && !defined(OPENSSL_NO_HW_ZXSM)
+static CRYPTO_ONCE engine_zxsm = CRYPTO_ONCE_STATIC_INIT;
+DEFINE_RUN_ONCE_STATIC(ossl_init_engine_zxsm)
+{
+#   ifdef OPENSSL_INIT_DEBUG
+    fprintf(stderr, "OPENSSL_INIT: ossl_init_engine_zxsm: "
+                    "engine_load_zxsm_int()\n");
+#   endif
+    engine_load_zxsm_int();
+    return 1;
+}
+#  endif
 #  if defined(OPENSSL_SYS_WIN32) && !defined(OPENSSL_NO_CAPIENG)
 static CRYPTO_ONCE engine_capi = CRYPTO_ONCE_STATIC_INIT;
 DEFINE_RUN_ONCE_STATIC(ossl_init_engine_capi)
@@ -620,6 +632,11 @@ int OPENSSL_init_crypto(uint64_t opts, const OPENSSL_INIT_SETTINGS *settings)
 #  if !defined(OPENSSL_NO_HW) && !defined(OPENSSL_NO_HW_PADLOCK)
     if ((opts & OPENSSL_INIT_ENGINE_PADLOCK)
             && !RUN_ONCE(&engine_padlock, ossl_init_engine_padlock))
+        return 0;
+#  endif
+#  if !defined(OPENSSL_NO_HW) && !defined(OPENSSL_NO_HW_ZXSM)
+    if ((opts & OPENSSL_INIT_ENGINE_ZXSM)
+            && !RUN_ONCE(&engine_zxsm, ossl_init_engine_zxsm))
         return 0;
 #  endif
 #  if defined(OPENSSL_SYS_WIN32) && !defined(OPENSSL_NO_CAPIENG)

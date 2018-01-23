@@ -1278,6 +1278,9 @@ unless ($disabled{asm}) {
     if ($target{padlock_asm_src} ne $table{DEFAULTS}->{padlock_asm_src}) {
 	push @{$config{defines}}, "PADLOCK_ASM";
     }
+    if ($target{zxsm_asm_src} ne $table{DEFAULTS}->{zxsm_asm_src}) {
+	push @{$config{defines}}, "ZXSM_ASM";
+    }
     if ($target{poly1305_asm_src} ne "") {
 	push @{$config{defines}}, "POLY1305_ASM";
     }
@@ -2682,6 +2685,7 @@ sub print_table_entry
 	"cmll_asm_src",
 	"modes_asm_src",
 	"padlock_asm_src",
+	"zxsm_asm_src",
 	"chacha_asm_src",
 	"poly1035_asm_src",
 	"thread_scheme",

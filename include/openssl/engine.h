@@ -328,6 +328,8 @@ ENGINE *ENGINE_by_id(const char *id);
 # ifndef OPENSSL_NO_STATIC_ENGINE
 #  define ENGINE_load_padlock() \
     OPENSSL_init_crypto(OPENSSL_INIT_ENGINE_PADLOCK, NULL)
+#  define ENGINE_load_zxsm() \
+    OPENSSL_init_crypto(OPENSSL_INIT_ENGINE_ZXSM, NULL)
 #  define ENGINE_load_capi() \
     OPENSSL_init_crypto(OPENSSL_INIT_ENGINE_CAPI, NULL)
 #  define ENGINE_load_afalg() \
