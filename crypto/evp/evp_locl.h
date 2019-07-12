@@ -44,6 +44,10 @@ struct evp_cipher_ctx_st {
     int final_used;
     int block_mask;
     unsigned char final[EVP_MAX_BLOCK_LENGTH]; /* possible final block */
+
+    /* Provider ctx */
+    void *provctx;
+    EVP_CIPHER *fetched_cipher;
 } /* EVP_CIPHER_CTX */ ;
 
 struct evp_mac_ctx_st {
@@ -52,7 +56,7 @@ struct evp_mac_ctx_st {
 } /* EVP_MAC_CTX */;
 
 struct evp_kdf_ctx_st {
-    const EVP_KDF_METHOD *kmeth;
+    const EVP_KDF *meth;         /* Method structure */
     EVP_KDF_IMPL *impl;          /* Algorithm-specific data */
 } /* EVP_KDF_CTX */ ;
 
@@ -87,7 +91,44 @@ int is_partially_overlapping(const void *ptr1, const void *ptr2, int len);
 
 void *evp_generic_fetch(OPENSSL_CTX *ctx, int operation_id,
                         const char *algorithm, const char *properties,
-                        void *(*new_method)(int nid, const OSSL_DISPATCH *fns,
+                        void *(*new_method)(const OSSL_DISPATCH *fns,
                                             OSSL_PROVIDER *prov),
-                        int (*upref_method)(void *),
+                        int (*up_ref_method)(void *),
                         void (*free_method)(void *));
+
+/* Helper functions to avoid duplicating code */
+
+/*
+ * The callbacks implement different ways to pass a params array to the
+ * provider.  They will return one of these values:
+ *
+ * -2 if the method doesn't come from a provider
+ *    (evp_do_param will return this to the called)
+ * -1 if the provider doesn't offer the desired function
+ *    (evp_do_param will raise an error and return 0)
+ * or the return value from the desired function
+ *    (evp_do_param will return it to the caller)
+ */
+int evp_do_ciph_getparams(const void *vciph, void *ignored,
+                          OSSL_PARAM params[]);
+int evp_do_ciph_ctx_getparams(const void *vciph, void *provctx,
+                              OSSL_PARAM params[]);
+int evp_do_ciph_ctx_setparams(const void *vciph, void *provctx,
+                              OSSL_PARAM params[]);
+
+/*-
+ * prepares a singular parameter, then calls the callback to execute.
+ *
+ * |method|   points to the method used by the callback.
+ *            EVP_CIPHER, EVP_MD, ...
+ * |ptr|      points at the data to transfer.
+ * |sz|       is the size of the data to transfer.
+ * |key|      is the name of the parameter to pass.
+ * |datatype| is the data type of the parameter to pass.
+ * |cb|       is the callback that actually performs the parameter passing
+ * |cb_ctx|   is the cipher context
+ */
+int evp_do_param(const void *method, void *ptr, size_t sz, const char *key,
+                 int datatype,
+                 int (*cb)(const void *method, void *ctx, OSSL_PARAM params[]),
+                 void *cb_ctx);
